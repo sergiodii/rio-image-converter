@@ -11,9 +11,13 @@ const routerStart = (app) => {
     route.get('/', async (_, res) => {
         res.status(200).json({ message: 'Welcome to rio-image-converter version 0.0.1' })
     })
-    
     route.post('/auth', 'ValidatorAuthPostMiddleware', 'AuthController.store')
+
+    route.get('/image', 'AuthMiddleware', async (_, res) => {
+        res.status(200).json({message: 'to get image insert the image name in url'})
+    })
     route.get('/image/:image', 'AuthMiddleware', 'ImageController.show')
+    route.post('/image', 'AuthMiddleware', 'ImageController.store')
 
 }
 

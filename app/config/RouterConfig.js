@@ -1,19 +1,18 @@
 'use strict'
 
 class RouterConfig {
-    app;
     constructor(app) {
         this.app = app;
+        this.controllerPath = '../controllers';
+        this.middlewarePath = '../middlewares'
+        this.pullExecution = [];
     }
-    controllerPath = '../controllers';
-    middlewarePath = '../middlewares'
+    
 
-    pullExecution = [];
 
     _prepareController(controller) {
         var controllerClass;
         var controllerMethod;
-        console.log(typeof controller)
         if (typeof controller === 'function') {
             return controller;
         }
@@ -28,9 +27,6 @@ class RouterConfig {
             throw { message: 'error on controllerpass' }
         }
     }
-
-    hasMiddleware = false;
-    activeMiddleware;
     
     get = (url, middleware, controller) => this.app.get(...this._prepareParams(url, middleware, controller));
     post = (url, middleware, controller) => this.app.post(...this._prepareParams(url, middleware, controller));

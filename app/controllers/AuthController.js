@@ -1,5 +1,7 @@
 'use strict'
 
+const jwt = require('jsonwebtoken')
+
 class AuthController {
 
 

@@ -1,7 +1,8 @@
 'use strict'
 
-var sharp = require('sharp');
-var path = require('path')
+const sharp = require('sharp');
+const path = require('path')
+const Driver = require('../config/DriverConfig')
 
 class ImageController {
 
@@ -21,12 +22,18 @@ class ImageController {
                 if (k !== 'size') options[k] = req.query[k]
             })
         }
-        var buffer = await sharp(path.join(__dirname, '..', '..', 'image.png')).resize(...(resize.split('x')).map(s => +s), options).toBuffer()
-        res.writeHead(200, {
-            'Content-Type': 'image/png',
-            'Content-Length': buffer.length
-         });
-         res.end(buffer); 
+        try {
+            var driverBuffer = await Driver.get(req.params.image)
+            if (!driverBuffer) return res.status(404).json({ message: 'file not found' })
+            var resizeImageBuffer = await sharp(driverBuffer).resize(...(resize.split('x')).map(s => +s), options).toBuffer()
+            res.writeHead(200, {
+                'Content-Type': 'image/png',
+                'Content-Length': resizeImageBuffer.length
+             });
+             return res.end(resizeImageBuffer); 
+        } catch (e) {
+            return res.status(500).json({ message: 'internal error: ' + e })
+        }
     }
 
     async store (req, res) {

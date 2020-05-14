@@ -1,0 +1,16 @@
+version: '3.6'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: dockerfile-app
+    ports:
+    - "3030:3030"
+    expose:
+    - 3030
+    restart: always
+    volumes:
+    - root-data:/app
+volumes:
+  root-data: 
+

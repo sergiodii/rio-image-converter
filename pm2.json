@@ -1,0 +1,4 @@
+{
+    "name":"rio-image-converter",
+    "script":"server.js"
+}
