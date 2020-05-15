@@ -3,13 +3,12 @@
 const sharp = require('sharp');
 const path = require('path')
 const Driver = require('../config/DriverConfig')
+const Fs = require('fs')
 
 class ImageController {
 
     async show (req, res) {
         let { size } = req.query
-        
-        console.log(size, req.params.image)
         var resize = '500x500';
         if (size) {
             var containX = size.split('x')
@@ -23,6 +22,7 @@ class ImageController {
             })
         }
         try {
+            if (!req.params.image) return res.status(400).json({ message: 'param name not found' })
             var driverBuffer = await Driver.get(req.params.image)
             if (!driverBuffer) return res.status(404).json({ message: 'file not found' })
             var resizeImageBuffer = await sharp(driverBuffer).resize(...(resize.split('x')).map(s => +s), options).toBuffer()
@@ -36,7 +36,32 @@ class ImageController {
         }
     }
 
+
     async store (req, res) {
+        let { name } = req.query
+        let { image } = req.files
+        if (!image) return res.status(404).json({ message: 'image not found' })
+        var newName =  name || image.name.split('.')[0]
+        Fs.access(`${Driver.rootPath}/${newName || image.name}`, Fs.constants.F_OK, (err) => {
+            if(err) {
+                Fs.readFile(image.path, async (err, data) => {
+                    if (err){ 
+                        res.status(500).json({ message: err })
+                    }
+                    else {
+                        var result = await Driver.put(newName ? newName : image.name, data)
+                        if (result) {
+                            res.status(200).json({ file: 'ok' })
+                        } else {
+                            res.status(500).json({ message: 'error on save file' })
+                        }
+                    }
+                })
+            } else {
+                res.status(400).json({ message: 'there is an image with the same name' })
+            }
+        })
+  
 
     }
 }
