@@ -1,6 +1,6 @@
 version: '3.6'
 services:
-  app:
+  rio-image-converter:
     build:
       context: .
       dockerfile: dockerfile-app
