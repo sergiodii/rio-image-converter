@@ -10,7 +10,7 @@ class RouterConfig {
     
 
 
-    _prepareController(controller) {
+    _controllerPreparer(controller) {
         var controllerClass;
         var controllerMethod;
         if (typeof controller === 'function') {
@@ -28,25 +28,48 @@ class RouterConfig {
         }
     }
     
-    get = (url, middleware, controller) => this.app.get(...this._prepareParams(url, middleware, controller));
-    post = (url, middleware, controller) => this.app.post(...this._prepareParams(url, middleware, controller));
-    put = (url, middleware, controller) => this.app.put(...this._prepareParams(url, middleware, controller));
-    delete = (url, middleware, controller) => this.app.delete(...this._prepareParams(url, middleware, controller));
+    get = (url, middleware, controller) => this.app.get(...this._parameterPreparer(url, middleware, controller));
+    post = (url, middleware, controller) => this.app.post(...this._parameterPreparer(url, middleware, controller));
+    put = (url, middleware, controller) => this.app.put(...this._parameterPreparer(url, middleware, controller));
+    delete = (url, middleware, controller) => this.app.delete(...this._parameterPreparer(url, middleware, controller));
 
-    _prepareMiddleware(middlewareName) {
+    _getMiddlewareInstance(middlewareName) {
         return new (require(`${this.middlewarePath}/${middlewareName}`))(this.app).handle;
     }
 
-    _prepareParams(url, middleware, controller) {
+    _parameterPreparer(url, middleware, controller) {
         if (middleware && !controller) {
             controller = middleware
             middleware = null;
         }
-        var execution = [url];
-        if (middleware) execution.push(this._prepareMiddleware(middleware))
-        execution.push(this._prepareController(controller))
+        var execution = [url, this._fileRetriever];
+        if (middleware) execution.push(this._getMiddlewareInstance(middleware))
+        execution.push(this._controllerPreparer(controller))
         return execution;
     }
+
+    _fileRetriever (req, res, next) {
+        var formidable = require('formidable');
+        var form = new formidable.IncomingForm();
+        req.files = {};
+        try {
+            if (req.headers && req.headers['content-type'] && req.headers['content-type'].match(/multipart[/]fo/g)) {
+                form.parse(req, function (err, fields, files) {
+                  if(Object.keys(files).length) {
+                    req.files = files;
+                    next()
+                  } else {
+                    next()
+                  }
+                })
+              } else {
+                next()
+              }
+        } catch (e) {
+            console.log(e)
+            res.status(500),json({ message: 'internal Error: ' + e })
+        }
+      }
   
 }
 

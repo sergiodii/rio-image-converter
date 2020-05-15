@@ -59,6 +59,10 @@ class DriverConfig {
         this.drive = new FlyDrive(this.config);
       }
 
+      get rootPath () {
+        return this.config.disks[this.config.default].root
+      }
+
       /**
        * @function get
        * @param {String} fileName
@@ -66,9 +70,9 @@ class DriverConfig {
        */
       async get(fileName) {
           try {
-              var hasFile = await this.drive.disk(this.config.default).exists(`${fileName}.png`);
+              var hasFile = await this.drive.disk(this.config.default).exists(`${fileName}`);
               if (hasFile) {
-                  var fileBuffer = await this.drive.disk(this.config.default).get(`${fileName}.png`);
+                  var fileBuffer = await this.drive.disk(this.config.default).get(`${fileName}`);
                   return fileBuffer;
               }
               throw new Error('file not found')
@@ -76,6 +80,16 @@ class DriverConfig {
             console.log(e)
             return null;
           }
+      }
+
+      async put(filename, buffer) {
+        try {
+          await this.drive.disk(this.config.default).put(filename, buffer)
+          return true;
+        } catch (e) {
+          console.log(e)
+          return null;
+        }
       }
 
 
